@@ -1,0 +1,12 @@
+host = httpbin.org
+port = 80 
+
+<query>
+url = /post
+method = POST
+content-type = application/text; charset=utf-8
+<body>
+Hello world,
+this is a multiline body
+</body>
+</query>
