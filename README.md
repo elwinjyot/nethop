@@ -81,7 +81,8 @@ cargo build --release
 ## 🗺️ Roadmap
 
 * [x] **HTTP + TLS Support**: Basic HTTP requests with safe TLS support.
-* [x] **Scriptable**: Custom scripting language to write network queries.
+* [x] **Scripting**: Custom scripting language to write network queries.
+* [ ] **Workspace testing suite**: Support for workspace detection and automatically run hop files inside a project + metrics and summaries on the queries similar to Jest & Vitest suites.
 * [ ] **Content Types**: Support for more accaptable content types other than text and json.
 * [ ] **Async Streaming**: Execute background requests while viewing the current response.
 * [ ] **Variable Injection**: Support environment variables like `{{API_KEY}}` inside `.hop` files.
