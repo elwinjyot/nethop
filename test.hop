@@ -1,17 +1,22 @@
-host = httpbin.org
-port = 80 
+host = rickandmortyapi.com
+port = 443
 
 <query>
-url = /post
-method = POST
-content-type = application/text; charset=utf-8
-<body>
-Hello world,
-this is a multiline body
-</body>
+url = /api/character/1
+method = GET
 </query>
 
 <query>
-url = /get
+url = /api/character/2
+method = GET
+</query>
+
+<query>
+url = /api/character/3
+method = GET
+</query>
+
+<query>
+url = /api/character/4
 method = GET
 </query>
