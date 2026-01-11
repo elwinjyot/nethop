@@ -5,8 +5,12 @@ use std::{
 };
 
 use native_tls::{TlsConnector, TlsStream};
+use serde_json::Value;
 
-use crate::http::{parse_response, read_body, Request, Response};
+use crate::{
+    http::{parse_response, read_body, Request, Response},
+    ui::view_in_less,
+};
 
 pub enum Stream {
     Http(TcpStream),
@@ -41,15 +45,19 @@ impl Write for Stream {
 pub struct Connection {
     pub host: String,
     pub port: u16,
+    pub is_safe: bool,
     pub reader: Option<BufReader<Stream>>,
 }
 
 pub fn connect(connection: &mut Connection) -> Result<(), Box<dyn Error>> {
-    println!("Connecting to {}", connection.host);
+    println!(
+        "Connecting to {} on port {}",
+        connection.host, connection.port
+    );
     let address = format!("{}:{}", connection.host, connection.port);
     let tcp_stream = TcpStream::connect(address)?;
 
-    let stream = if connection.port == 443 {
+    let stream = if connection.is_safe {
         let connector = TlsConnector::new()?;
         let tls_stream = connector
             .connect(&connection.host, tcp_stream)
@@ -105,4 +113,37 @@ pub fn send_request(connection: &mut Connection, request: &Request) -> Result<Re
 
     let response = read_body(&mut stream).unwrap_or(String::from(""));
     parse_response(&response)
+}
+
+pub fn execute_batch_requests(
+    requests: Vec<Request>,
+    conn: &mut Connection,
+) -> Result<(), Box<dyn Error>> {
+    for request in requests {
+        execute_request(&request, conn)?;
+    }
+
+    Ok(())
+}
+
+fn execute_request(request: &Request, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
+    println!("\n> [{}]: {}{}", request.method, conn.host, request.url);
+    let response = send_request(conn, &request)?;
+    println!("====[RESPONSE]====");
+    println!("> Status: {}", response.status);
+    println!("> Date: {}", response.get_header("Date").unwrap_or("--"));
+
+    let json_body: Value = serde_json::from_str(response.body.as_str())?;
+    view_in_less(
+        format!(
+            "> [{}]: {}{}\n\n{}",
+            request.method,
+            conn.host,
+            request.url,
+            &serde_json::to_string_pretty(&json_body)?
+        )
+        .as_str(),
+    )?;
+
+    Ok(())
 }

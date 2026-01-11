@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader, Read};
 
 use crate::network::Stream;
 
+#[derive(Default, Debug)]
 pub struct Request {
     pub url: String,
     pub method: String,
