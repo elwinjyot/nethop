@@ -10,3 +10,8 @@ Hello world,
 this is a multiline body
 </body>
 </query>
+
+<query>
+url = /get
+method = GET
+</query>

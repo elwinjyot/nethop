@@ -3,6 +3,38 @@ use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 
+use native_tls::{TlsConnector, TlsStream};
+
+enum Stream {
+    Http(TcpStream),
+    Https(TlsStream<TcpStream>)
+}
+
+impl Read for Stream {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self {
+            Stream::Http(stream) => stream.read(buf),
+            Stream::Https(stream) => stream.read(buf)
+        }
+    }
+}
+
+impl Write for Stream {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            Stream::Http(s) => s.write(buf),
+            Stream::Https(s) => s.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            Stream::Http(s) => s.flush(),
+            Stream::Https(s) => s.flush(),
+        }
+    }
+}
+
 struct Response {
     status: u16,
     headers: String,
@@ -26,7 +58,7 @@ impl Response {
 struct Connection {
     host: String,
     port: u16,
-    reader: Option<BufReader<TcpStream>>,
+    reader: Option<BufReader<Stream>>,
 }
 
 struct Request {
@@ -117,13 +149,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn connect(connection: &mut Connection) -> Result<(), String> {
+fn connect(connection: &mut Connection) -> Result<(), Box<dyn Error>> {
     println!("Connecting to {}", connection.host);
-    let stream = TcpStream::connect(format!("{}:{}", connection.host, connection.port))
-        .map_err(|e| format!("Failed to connect to TCP stream: {}", e))?;
+    let address = format!("{}:{}", connection.host, connection.port);
+    let tcp_stream = TcpStream::connect(address)?;
+
+    let stream = if connection.port == 443 {
+        let connector = TlsConnector::new()?;
+        let tls_stream = connector.connect(&connection.host, tcp_stream)
+            .map_err(|e| format!("TLS Handshake failed: {}", e))?;
+        Stream::Https(tls_stream)
+    } else {
+        Stream::Http(tcp_stream)
+    };
 
     connection.reader = Some(BufReader::new(stream));
-
     Ok(())
 }
 
