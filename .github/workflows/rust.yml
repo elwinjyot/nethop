@@ -24,7 +24,7 @@ jobs:
       - name: Check Formatting
         run: cargo fmt --all -- --check
 
-      - name: Lint with Clippy
+      - name: Lint
         run: cargo clippy -- -D warnings
 
       - name: Build

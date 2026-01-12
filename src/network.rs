@@ -7,7 +7,7 @@ use std::{
 use native_tls::{TlsConnector, TlsStream};
 
 use crate::{
-    http::{parse_response, read_body, Request, Response},
+    http::{Request, Response, parse_response, read_body},
     ui::view_in_less,
 };
 
