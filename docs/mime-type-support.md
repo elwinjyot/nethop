@@ -20,6 +20,4 @@ NetHop uses the `Content-Type` header from the server response to determine how 
 - 🚧 **In Development**: Planned for a future release (see [Roadmap](../README.md#roadmap)).
 - ❌ **Not Supported**: Binary or incompatible formats.
 
----
-[⬆ Back to README](../README.md)# Supported Mime Types
---
+#### [⬆ Back to README](../README.md)
