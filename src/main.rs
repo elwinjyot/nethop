@@ -1,16 +1,20 @@
+mod file_handler;
 mod hop_lang;
 mod http;
 mod network;
 mod ui;
-mod file_handler;
 
-use std::{env, error::Error, io::{self, Write}};
+use std::{
+    env,
+    error::Error,
+    io::{self, Write},
+};
 
 use crate::{
+    file_handler::{read_queries_from_file, read_queries_from_workspace},
     hop_lang::{clean_script, fetch_connection_header, fetch_requests},
     network::connect,
     network::execute_batch_requests,
-    file_handler::{read_queries_from_file, read_queries_from_workspace}
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -19,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
     let query_raw = match args.get(1) {
         Some(file_path) => read_queries_from_file(file_path)?,
-        None => read_queries_from_workspace()?
+        None => read_queries_from_workspace()?,
     };
 
     let cleaned_queries = clean_script(&query_raw)?;
@@ -36,6 +40,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         println!("❌ Cancelled");
     }
-    
+
     Ok(())
 }
