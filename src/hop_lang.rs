@@ -10,7 +10,7 @@ pub fn clean_script(script: &str) -> Result<String, Box<dyn Error>> {
         }
 
         cleaned_script.push_str(line);
-        cleaned_script.push_str("\n");
+        cleaned_script.push('\n');
     }
 
     Ok(cleaned_script)
@@ -140,7 +140,7 @@ pub fn fetch_requests(script: &str) -> Result<Vec<Request>, String> {
                     "url" => current_request.url = value.trim().to_string(),
                     "method" => current_request.method = value.trim().to_uppercase(),
                     "content-type" => current_request.content_type = value.trim().to_lowercase(),
-                    _ => return Err(format!("Unknown key: {}", key).into()),
+                    _ => return Err(format!("Unknown key: {}", key)),
                 }
             }
         }

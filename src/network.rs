@@ -7,7 +7,7 @@ use std::{
 use native_tls::{TlsConnector, TlsStream};
 
 use crate::{
-    http::{Request, Response, parse_response, read_body},
+    http::{parse_response, read_body, Request, Response},
     ui::view_in_less,
 };
 
@@ -92,7 +92,7 @@ pub fn send_request(connection: &mut Connection, request: &Request) -> Result<Re
     );
 
     let reader = connection.reader.as_mut().ok_or("Not Connected")?;
-    let mut stream = reader.get_mut();
+    let stream = reader.get_mut();
 
     stream
         .write_all(request_str.as_bytes())
@@ -110,7 +110,7 @@ pub fn send_request(connection: &mut Connection, request: &Request) -> Result<Re
 
     stream.flush().map_err(|err| err.to_string())?;
 
-    let response = read_body(&mut stream).unwrap_or(String::from(""));
+    let response = read_body(stream).unwrap_or(String::from(""));
     parse_response(&response)
 }
 
@@ -127,7 +127,7 @@ pub fn execute_batch_requests(
 
 fn execute_request(request: &Request, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
     println!("\n> [{}]: {}{}", request.method, conn.host, request.url);
-    let response = send_request(conn, &request)?;
+    let response = send_request(conn, request)?;
     println!("====[RESPONSE]====");
     println!("> Status: {}", response.status);
     println!("> Date: {}", response.get_header("Date").unwrap_or("--"));

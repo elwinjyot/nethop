@@ -21,14 +21,12 @@ pub struct Response {
 impl Response {
     pub fn get_header(&self, k: &str) -> Option<&str> {
         for line in self.headers.split("\r\n") {
-            if let Some((key, value)) = line.split_once(": ") {
-                if key.to_lowercase() == k.to_lowercase() {
-                    return Some(value);
-                }
+            if let Some((key, value)) = line.split_once(": ") && key.to_lowercase() == k.to_lowercase() {
+                 return Some(value);
             }
         }
 
-        return None;
+        None
     }
 }
 
@@ -71,7 +69,7 @@ pub fn read_body(stream: &mut Stream) -> Result<String, String> {
                 .map_err(|e| e.to_string())?;
 
             let chunk_size =
-                usize::from_str_radix(&size_line.trim(), 16).map_err(|e| e.to_string())?;
+                usize::from_str_radix(size_line.trim(), 16).map_err(|e| e.to_string())?;
 
             if chunk_size == 0 {
                 break;
@@ -133,10 +131,10 @@ pub fn parse_response(raw: &str) -> Result<Response, String> {
     response.body = match mime_type {
         "application/text" | "text/plain" => body.to_string(),
         "application/json" => {
-            let json: Value = serde_json::from_str(body)
-                .map_err(|e| format!("Failed to parse json: {}", e.to_string()))?;
+            let json: Value =
+                serde_json::from_str(body).map_err(|e| format!("Failed to parse json: {}", e))?;
             serde_json::to_string_pretty(&json)
-                .map_err(|e| format!("Failed to parse json: {}", e.to_string()))?
+                .map_err(|e| format!("Failed to parse json: {}", e))?
         }
         _ => return Err(format!("Unsupported content type found `{}`", mime_type)),
     };
