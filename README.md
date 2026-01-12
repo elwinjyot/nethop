@@ -76,7 +76,7 @@ cargo build --release
 
 ```
 
-
+> NetHop has limited support for mime-types as of now. A list of supported mime types and future roadmap can be found [here](./docs/mime-type-support.md)
 
 ## 🗺️ Roadmap
 
