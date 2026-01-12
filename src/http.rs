@@ -21,8 +21,10 @@ pub struct Response {
 impl Response {
     pub fn get_header(&self, k: &str) -> Option<&str> {
         for line in self.headers.split("\r\n") {
-            if let Some((key, value)) = line.split_once(": ") && key.to_lowercase() == k.to_lowercase() {
-                 return Some(value);
+            if let Some((key, value)) = line.split_once(": ")
+                && key.to_lowercase() == k.to_lowercase()
+            {
+                return Some(value);
             }
         }
 
