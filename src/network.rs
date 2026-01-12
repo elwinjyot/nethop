@@ -5,7 +5,6 @@ use std::{
 };
 
 use native_tls::{TlsConnector, TlsStream};
-use serde_json::Value;
 
 use crate::{
     http::{parse_response, read_body, Request, Response},
@@ -133,17 +132,10 @@ fn execute_request(request: &Request, conn: &mut Connection) -> Result<(), Box<d
     println!("> Status: {}", response.status);
     println!("> Date: {}", response.get_header("Date").unwrap_or("--"));
 
-    let json_body: Value = serde_json::from_str(response.body.as_str())?;
-    view_in_less(
-        format!(
-            "> [{}]: {}{}\n\n{}",
-            request.method,
-            conn.host,
-            request.url,
-            &serde_json::to_string_pretty(&json_body)?
-        )
-        .as_str(),
-    )?;
+    view_in_less(&format!(
+        "> [{}]: {}{}\n\n{}",
+        request.method, conn.host, request.url, response.body
+    ))?;
 
     Ok(())
 }

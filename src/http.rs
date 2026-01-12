@@ -1,5 +1,7 @@
 use std::io::{BufRead, BufReader, Read};
 
+use serde_json::Value;
+
 use crate::network::Stream;
 
 #[derive(Default, Debug)]
@@ -17,16 +19,16 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn get_header(&self, k: &str) -> Result<&str, ()> {
+    pub fn get_header(&self, k: &str) -> Option<&str> {
         for line in self.headers.split("\r\n") {
             if let Some((key, value)) = line.split_once(": ") {
-                if key == k {
-                    return Ok(value);
+                if key.to_lowercase() == k.to_lowercase() {
+                    return Some(value);
                 }
             }
         }
 
-        Err(())
+        return None;
     }
 }
 
@@ -100,6 +102,11 @@ pub fn read_body(stream: &mut Stream) -> Result<String, String> {
 
 pub fn parse_response(raw: &str) -> Result<Response, String> {
     let (head, body) = raw.split_once("\r\n\r\n").ok_or("Malformed response!")?;
+    let mut response = Response {
+        status: 404,
+        headers: String::new(),
+        body: String::new(),
+    };
 
     let mut head_lines = head.lines();
     let status_line = head_lines.next().ok_or("Empty Response")?;
@@ -109,16 +116,30 @@ pub fn parse_response(raw: &str) -> Result<Response, String> {
         .ok_or("Invalid status line")?
         .parse::<u16>()
         .map_err(|_| "Invlid status code")?;
+    response.status = status;
 
     let mut headers = String::new();
     for line in head_lines {
         headers.push_str(line);
         headers.push_str("\r\n");
     }
+    response.headers = headers;
 
-    Ok(Response {
-        status,
-        headers,
-        body: String::from(body),
-    })
+    let content_type = response
+        .get_header("content-type")
+        .ok_or("Content type not sent by response".to_string())?;
+
+    let mime_type = content_type.split(";").next().unwrap_or("").trim();
+    response.body = match mime_type {
+        "application/text" | "text/plain" => body.to_string(),
+        "application/json" => {
+            let json: Value = serde_json::from_str(body)
+                .map_err(|e| format!("Failed to parse json: {}", e.to_string()))?;
+            serde_json::to_string_pretty(&json)
+                .map_err(|e| format!("Failed to parse json: {}", e.to_string()))?
+        }
+        _ => return Err(format!("Unsupported content type found `{}`", mime_type)),
+    };
+
+    Ok(response)
 }
