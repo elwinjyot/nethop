@@ -3,7 +3,7 @@ use std::error::Error;
 use crate::{
     http::Request,
     network::Connection,
-    test_bed::{get_operator, TestCase},
+    test_bed::{TestCase, get_operator},
 };
 
 pub fn clean_script(script: &str) -> Result<String, Box<dyn Error>> {

@@ -59,7 +59,7 @@ pub fn test_case(response: &Response, case: &TestCase) -> bool {
     }
 
     let header_val = response.get_header(&case.key).unwrap_or("");
-    return do_operation(&case.operation, header_val, &case.value);
+    do_operation(&case.operation, header_val, &case.value)
 }
 
 pub fn get_operator(op_str: &str) -> Result<Operator, String> {

@@ -130,12 +130,12 @@ fn execute_request(request: &Request, conn: &mut Connection) -> Result<(), Box<d
     println!("\n[{}: {}]", request.method, request.url);
     let response = send_request(conn, request)?;
 
-    if request.test_cases.len() > 0 {
+    if !request.test_cases.is_empty() {
         let mut passed = 0;
         let mut failed = 0;
         println!("Running {} test(s)\n", request.test_cases.len());
         for case in &request.test_cases {
-            if test_case(&response, &case) {
+            if test_case(&response, case) {
                 println!(" -> Passed");
                 passed += 1;
             } else {
