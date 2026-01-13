@@ -2,7 +2,7 @@ use std::io::{BufRead, BufReader, Read};
 
 use serde_json::Value;
 
-use crate::network::Stream;
+use crate::{network::Stream, test_bed::TestCase};
 
 #[derive(Default, Debug)]
 pub struct Request {
@@ -10,6 +10,7 @@ pub struct Request {
     pub method: String,
     pub body: String,
     pub content_type: String,
+    pub test_cases: Vec<TestCase>,
 }
 
 pub struct Response {

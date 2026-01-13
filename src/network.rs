@@ -7,7 +7,8 @@ use std::{
 use native_tls::{TlsConnector, TlsStream};
 
 use crate::{
-    http::{Request, Response, parse_response, read_body},
+    http::{parse_response, read_body, Request, Response},
+    test_bed::test_case,
     ui::view_in_less,
 };
 
@@ -126,16 +127,38 @@ pub fn execute_batch_requests(
 }
 
 fn execute_request(request: &Request, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
-    println!("\n> [{}]: {}{}", request.method, conn.host, request.url);
+    println!("\n[{}: {}]", request.method, request.url);
     let response = send_request(conn, request)?;
-    println!("====[RESPONSE]====");
-    println!("> Status: {}", response.status);
-    println!("> Date: {}", response.get_header("Date").unwrap_or("--"));
 
-    view_in_less(&format!(
-        "> [{}]: {}{}\n\n{}",
-        request.method, conn.host, request.url, response.body
-    ))?;
+    if request.test_cases.len() > 0 {
+        let mut passed = 0;
+        let mut failed = 0;
+        println!("Running {} test(s)\n", request.test_cases.len());
+        for case in &request.test_cases {
+            if test_case(&response, &case) {
+                println!(" -> Passed");
+                passed += 1;
+            } else {
+                println!(" -> Failed");
+                failed += 1;
+            }
+        }
+
+        println!("\nReport:");
+        println!(
+            "Ran {} test(s), {} test(s) passed, {} test(s) failed",
+            passed + failed,
+            passed,
+            failed
+        );
+    } else {
+        println!("> Status: {}", response.status);
+        println!("> Date: {}", response.get_header("Date").unwrap_or("--"));
+        view_in_less(&format!(
+            "[{}: {}{}]\n\n{}",
+            request.method, conn.host, request.url, response.body
+        ))?;
+    }
 
     Ok(())
 }

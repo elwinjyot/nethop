@@ -1,6 +1,10 @@
 use std::error::Error;
 
-use crate::{http::Request, network::Connection};
+use crate::{
+    http::Request,
+    network::Connection,
+    test_bed::{get_operator, TestCase},
+};
 
 pub fn clean_script(script: &str) -> Result<String, Box<dyn Error>> {
     let mut cleaned_script = String::new();
@@ -71,15 +75,12 @@ pub fn fetch_requests(script: &str) -> Result<Vec<Request>, String> {
     let lines = script.lines();
     let estimated_size = script.matches("<query>").count();
     let mut requests: Vec<Request> = Vec::with_capacity(estimated_size);
-    let mut current_request = Request {
-        url: String::new(),
-        method: String::from("GET"),
-        body: String::new(),
-        content_type: String::from("application/text"),
-    };
+    let mut current_test_case = TestCase::default();
+    let mut current_request = Request::default();
 
     let mut is_query = false;
     let mut is_body = false;
+    let mut is_test_case = false;
 
     for line in lines {
         let trimmed = line.trim();
@@ -93,27 +94,11 @@ pub fn fetch_requests(script: &str) -> Result<Vec<Request>, String> {
                 method: String::from("GET"),
                 body: String::new(),
                 content_type: String::new(),
+                test_cases: Vec::new(),
             };
             is_query = true;
             continue;
         } else if trimmed == "</query>" {
-            // println!("\n> [{}]: {}{}", request.method, conn.host, request.url);
-            // let response = send_request(&mut conn, &request)?;
-            // println!("====[RESPONSE]====");
-            // println!("> Status: {}", response.status);
-            // println!("> Date: {}", response.get_header("Date").unwrap_or("--"));
-            //
-            // let json_body: Value = serde_json::from_str(response.body.as_str())?;
-            // view_in_less(
-            //     format!(
-            //         "> [{}]: {}{}\n\n{}",
-            //         request.method,
-            //         conn.host,
-            //         request.url,
-            //         &serde_json::to_string_pretty(&json_body)?
-            //     )
-            //     .as_str(),
-            // )?;
             requests.push(std::mem::take(&mut current_request));
             is_query = false;
             continue;
@@ -127,11 +112,36 @@ pub fn fetch_requests(script: &str) -> Result<Vec<Request>, String> {
                 current_request.body.push('\n');
             }
             continue;
-        }
+        } else if is_test_case {
+            if trimmed == "</assert>" {
+                is_test_case = false;
+            } else {
+                let expression: Vec<&str> = trimmed.splitn(3, " ").collect();
+                if expression.len() != 3 {
+                    return Err(format!(
+                        "Invalid expression in assertion, {}, {}",
+                        trimmed,
+                        expression.len()
+                    ));
+                }
 
-        if is_query {
+                current_test_case.key = String::from(expression[0]);
+                current_test_case.operation = get_operator(expression[1])?;
+                current_test_case.value = String::from(expression[2]);
+                current_request
+                    .test_cases
+                    .push(std::mem::take(&mut current_test_case));
+                current_test_case = TestCase::default();
+            }
+            continue;
+        } else if is_query {
             if trimmed == "<body>" {
                 is_body = true;
+                continue;
+            }
+
+            if trimmed == "<assert>" {
+                is_test_case = true;
                 continue;
             }
 

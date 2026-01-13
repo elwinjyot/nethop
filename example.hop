@@ -22,6 +22,25 @@
 <query>
   url = /todos
   method = GET
+
+  <assert>
+    status = 200
+    content-type ~ json
+    status < 200
+    body ~ {
+  </assert>
+</query>
+
+
+<query>
+  url = /posts/1
+  method = GET
+
+  <assert>
+    status >= 200
+    status < 300
+    body ~ "title"
+  </assert>
 </query>
 
 # NOTE: DISABLED SINCE THIS FEATURE IS UNDER DEVELOPMENT (WILL CRASH IF UNCOMMENTED)

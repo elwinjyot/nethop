@@ -2,6 +2,7 @@ mod file_handler;
 mod hop_lang;
 mod http;
 mod network;
+mod test_bed;
 mod ui;
 
 use std::{
