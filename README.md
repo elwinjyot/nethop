@@ -2,6 +2,8 @@
 
 **NetHop** is a developer-centric, scriptable HTTP client for the terminal. It bridges the gap between `curl` and heavy GUI clients like Postman, allowing you to define, execute, and inspect complex API workflows using a simple, human-readable `.hop` scripting format.
 
+![Demo of NetHop](./docs/images/test_bed_demo.png)
+
 ## ✨ Features
 
 * **Scriptable Workflows**: Define connection settings and multiple request blocks in a single `.hop` file.
