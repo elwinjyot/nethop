@@ -3,18 +3,18 @@ use std::error::Error;
 use crate::{
     http::Request,
     network::Connection,
-    test_bed::{TestCase, get_operator},
+    test_bed::{get_operator, TestCase},
 };
 
 pub fn clean_script(script: &str) -> Result<String, Box<dyn Error>> {
+    println!("Cleaning script");
     let mut cleaned_script = String::new();
-    for line in script.lines() {
-        if line.trim().starts_with("#") || line.is_empty() {
+    for ch in script.chars() {
+        if ch.is_whitespace() {
             continue;
         }
 
-        cleaned_script.push_str(line);
-        cleaned_script.push('\n');
+        cleaned_script.push(ch);
     }
 
     Ok(cleaned_script)

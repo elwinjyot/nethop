@@ -1,3 +1,4 @@
+mod compiler;
 mod file_handler;
 mod hop_lang;
 mod http;
@@ -12,10 +13,10 @@ use std::{
 };
 
 use crate::{
+    compiler::lexer::Lexer,
     file_handler::{read_queries_from_file, read_queries_from_workspace},
     hop_lang::{clean_script, fetch_connection_header, fetch_requests},
-    network::connect,
-    network::execute_batch_requests,
+    network::{connect, execute_batch_requests},
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -28,6 +29,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let cleaned_queries = clean_script(&query_raw)?;
+    let mut lexer = Lexer {
+        input: query_raw,
+        position: 0,
+    };
+
+    let tokens = lexer.tokenize();
+    println!("{:?}", tokens);
+
     let mut start_query = String::new();
     print!("Queries prepared, start execution? [Y/n]: ");
     io::stdout().flush()?;
